@@ -1,7 +1,7 @@
 # ForgeDB - Data Access & ETL Reference
 ## Persistent Storage for Iterated Prisoner's Dilemma with LLM Agents
 
-**Version:** 1.0  
+**Version:** 2.0 (March 16, 2026)  
 **Author:** Emily D. Carpenter, Anderson College of Business and Computing, Regis University  
 **Project:** GENESIS - General Emergent Norms, Ethics, and Societies in Silico  
 **Advisors:** Dr. Douglas Hart, Dr. Kellen Sorauf
@@ -127,6 +127,7 @@ All query methods return a **pandas DataFrame** and accept the same optional fil
 | `end_date` | `str` or `datetime` | Results before this date |
 | `username` | `str` | Filter by username (case insensitive, wildcard is `%` sign) |
 | `filename` | `str` | Filter by result filename (case insensitive, wildcard is `%` sign) |
+| `comment` | `str` | Filter by comment (case insensitive, wildcard is `%` sign) |
 | `limit` | `int` | Maximum rows to return |
 
 ---
@@ -137,7 +138,7 @@ Returns experiment metadata with the original raw JSON. Useful for inspecting th
 
 **SQL view:** `ipd2.raw_data_vw`  
 
-**Columns:** `results_id`, `username`, `filename`, `timestamp`, `raw_json`
+**Columns:** `results_id`, `username`, `filename`, `comment`, `timestamp`, `raw_json`
 
 ```python
 df = db.get_raw_data(username='dhart')
@@ -170,7 +171,7 @@ Returns one row per experiment with agent data pivoted to columns. Best for comp
 
 **SQL view:** `ipd2.experiment_summary_vw`  
 
-**Columns:** `results_id`, `username`, `filename`, `timestamp`, `hostname`, `elapsed_time`, `agent_#_host`, `agent_#_model`, `agent_#_total_score`, `agent_#_total_cooperations`, `agent_0_cooperation_rate`, **all** config fields, `system_prompt`, and `reflection_template`.
+**Columns:** `results_id`, `username`, `filename`, `comment`, `timestamp`, `hostname`, `elapsed_time`, `agent_#_host`, `agent_#_model`, `agent_#_total_score`, `agent_#_total_cooperations`, `agent_0_cooperation_rate`, **all** config fields, `system_prompt`, and `reflection_template`.
 
 ```python
 df = db.get_summary()
@@ -186,7 +187,7 @@ Returns one row per episode with agent data pivoted to columns. Useful for track
 
 **SQL view:** `ipd2.episode_summary_vw`  
 
-**Columns:** `results_id`, `username`, `filename`, `timestamp`, `episode`, `agent_#_total_score`, `agent_#_total_cooperations`, `agent_#_coop_rate`, `agent_#_reflection`.
+**Columns:** `results_id`, `username`, `filename`, `comment`, `timestamp`, `episode`, `agent_#_total_score`, `agent_#_total_cooperations`, `agent_#_coop_rate`, `agent_#_reflection`.
 
 ```python
 df = db.get_episode_summary(username='dhart', filename='%ep50%')
@@ -199,7 +200,7 @@ Returns one row per round with both agents' data side-by-side (i.e. pivoted from
 
 **SQL view:** `ipd2.rounds_summary_vw`  
 
-**Columns:** `results_id`, `username`, `filename`, `timestamp`, `episode`, `round`, `agent_#_episode_id`, `agent_#_action`, `agent_#_payoff`, `agent_#_ep_cumulative_score`, `agent_#_reasoning`.
+**Columns:** `results_id`, `username`, `filename`, `comment`, `timestamp`, `episode`, `round`, `agent_#_episode_id`, `agent_#_action`, `agent_#_payoff`, `agent_#_ep_cumulative_score`, `agent_#_reasoning`.
 
 ```python
 df = db.get_rounds_summary(
@@ -216,7 +217,7 @@ Returns one row per round per agent (unpivoted). Similar to `get_results()` but 
 
 **SQL view:** `ipd2.rounds_detail_vw`  
 
-**Columns:** `results_id`, `username`, `filename`, `timestamp`, `episode_id`, `agent_idx`, `episode`, `round`, `agent`, `action`, `payoff`, `ep_cumulative_score`, `reasoning`, `ep_score`, `ep_cooperations`, `ep_coop_rate`, `ep_reflection`.
+**Columns:** `results_id`, `username`, `filename`, `comment`, `timestamp`, `episode_id`, `agent_idx`, `episode`, `round`, `agent`, `action`, `payoff`, `ep_cumulative_score`, `reasoning`, `ep_score`, `ep_cooperations`, `ep_coop_rate`, `ep_reflection`.
 
 ```python
 df = db.get_rounds_detail(limit=100)
@@ -252,6 +253,9 @@ df = db.get_episode_summary(
 
 # Limit rows (useful for testing)
 df = db.get_results(limit=10)
+
+# Filter by comment
+df = db.get_summary(comment='%baseline%')
 ```
 ---
 
@@ -355,6 +359,127 @@ WHERE timestamp >= '2026-01-27' AND timestamp < '2026-01-28';
 
 ---
 
+## Part 4: Research Log
+
+The research log provides a simple way to document observations, meeting notes, and project activities. Entries are stored in `ipd2.research_log` and are independent of experiment data (i.e. deletions do not affect other tables within the database).
+
+### Add a Log Entry
+```python
+from forgedb import ForgeDB
+
+db = ForgeDB()
+
+# Minimal entry (remarks required, defaults applied)
+db.add_log(remarks='Observed cooperation spike in episode 7')
+
+# Entry with select parameters (remarks, subject, log date/time, and tags)
+db.add_log(
+    remarks='Breakthrough! Cooperation emerged spontaneously after round 12 without any prior coordination. Both agents shifted from mixed strategies to sustained mutual cooperation for the remaining 38 rounds. This occurred with temperature=0.7 and reflection_type=standard. Need to replicate.',
+    subject='Discovery',
+    log_dttm='2026-02-18 09:45:00',
+    tags=['cooperation', 'emergence', 'breakthrough', 'llama3', 'replicate']
+)
+
+# Full entry with all parameters
+db.add_log(
+    remarks='Initial baseline test completed successfully',
+    username='dhart',
+    subject='Experiment',
+    log_dttm='2026-02-15',
+    tags=['llama3', 'baseline', 'cooperation']
+)
+
+db.close()
+```
+
+**Parameters:**
+
+| Parameter | Required | Default | Description |
+|-----------|----------|---------|-------------|
+| `remarks` | Yes | — | Detailed notes |
+| `username` | No | Current OS user | Researcher name |
+| `subject` | No | `'General'` | Brief description |
+| `log_dttm` | No | Current timestamp | Effective date/time |
+| `tags` | No | `None` | Single tag or Array of tags, e.g. `['llama3', 'test']` |
+
+---
+
+### Query Log Entries
+```python
+# All entries
+df = db.get_log()
+
+# Filter by username
+df = db.get_log(username='dhart')
+
+# Filter by subject (wildcard %)
+df = db.get_log(subject='%Experiment%')
+
+# Search remarks
+df = db.get_log(remarks='%cooperation%')
+
+# Filter by single tag
+df = db.get_log(tags='llama3')
+
+# Filter by multiple tags (ALL tags must be present on the log entry)
+df = db.get_log(tags=['llama3', 'cooperation'])
+
+# Filter by date range
+df = db.get_log(start_date='2026-02-01', end_date='2026-02-15')
+
+# Filter by date range with specific time
+df = db.get_log(start_date='2026-02-15 08:00:00', end_date='2026-02-15 17:00:00')
+
+# Combine filters
+df = db.get_log(username='dhart', tags='experiment', limit=10)
+```
+
+**Parameters (all optional, wildcard=%):**
+
+| Parameter | Description |
+|-----------|-------------|
+| `username` | Filter by researcher |
+| `subject` | Filter by subject |
+| `remarks` | Search within remarks text |
+| `tags` | Single tag or list of tags (matches ALL if list) |
+| `start_date` | Filter on/after this date/time |
+| `end_date` | Filter before this date/time |
+| `limit` | Maximum rows to return |
+
+---
+
+### Delete Log Entries
+```python
+# Delete a single log entry using a log entry ID number
+db.delete_log(5)
+
+# Delete multiple log entries using a list of IDs
+db.delete_log([1, 3, 5])
+
+# Delete a range of log entries using a tuple of ID start and end values (inclusive)
+db.delete_log((1, 10))  # Deletes IDs 1 through 10
+```
+
+**Note:** Use a tuple `(start, end)` for a range. Use a list `[1, 3, 5]` for specific non-contiguous IDs.
+
+---
+
+### Research Log Table Structure
+
+**Table:** `ipd2.research_log`
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `log_id` | `SERIAL` | Primary key (auto-generated) |
+| `create_dttm` | `TIMESTAMPTZ` | When the entry was created |
+| `log_dttm` | `TIMESTAMPTZ` | Effective date (what the note refers to) |
+| `username` | `VARCHAR(64)` | Researcher who created the entry |
+| `subject` | `VARCHAR(256)` | Brief description/category |
+| `remarks` | `TEXT` | Detailed notes |
+| `tags` | `TEXT[]` | Array of tags for filtering |
+
+---
+
 ## Quick Reference Card
 
 ```python
@@ -374,6 +499,7 @@ db.get_rounds_detail()          # Round detail (per agent row)
 # Common filters (all methods accept these)
 db.get_summary(username='dhart')
 db.get_summary(filename='%ep50%')
+db.get_summary(comment='%test%')
 db.get_summary(start_date='2026-01-25', end_date='2026-02-01')
 db.get_summary(limit=10)
 
@@ -384,6 +510,13 @@ df = pd.DataFrame(rows)
 # CLI import
 # python forgedb.py --import results/
 # python forgedb.py --import results/game.json --username dhart
+
+# Research log methods
+db.add_log(remarks='Note text', subject='Topic', tags=['tag1', 'tag2'])
+db.get_log(username='dhart', tags='experiment')
+db.delete_log(5)           # Single ID
+db.delete_log([1, 3, 5])   # List of IDs
+db.delete_log((1, 10))     # Range (inclusive)
 
 db.close()
 ```
@@ -444,3 +577,96 @@ Carpenter, E. D. (2026, January-May). ForgeDB: Data access & ETL pipeline for
 ## Acknowledgments
 
 Database schema, ETL pipeline, and documentation developed with assistance from Claude (Anthropic; models used include Sonnet 4.5 and Opus 4.6). All code and content reviewed, edited, and approved by the author.
+
+---
+
+## Appendix: Database Configuration
+
+PostgreSQL was installed on the `platinum` host and configured for cluster-wide access. The following steps were performed once during initial setup.
+
+### Installation
+```bash
+sudo apt install postgresql
+```
+
+PostgreSQL starts automatically as a service after installation.
+
+### Database and Role Creation
+Each person participating in the research is granted SUDO access on the cluster. Similarly, each person is granted full access to the PostgreSQL database program and the forge database created for this project.
+
+The next command is executed in the Linux shell to launch the PostgreSQL interactive terminal (or client).
+```bash
+# Connect as the postgres superuser
+sudo -u postgres psql
+```
+
+PostgreSQL uses **peer authentication** by default — the Linux username is matched to the PostgreSQL role, so no passwords are required for local connections. The next set of commands creates roles for each researcher in the program.
+
+```sql
+# Create roles matching Linux usernames for each researcher (peer authentication)
+CREATE ROLE techkgirl WITH LOGIN CREATEDB;
+CREATE ROLE ksorauf WITH LOGIN CREATEDB;
+CREATE ROLE priyankasaha205 WITH LOGIN CREATEDB;
+CREATE ROLE dhart WITH LOGIN CREATEDB;
+CREATE ROLE theandyman WITH LOGIN CREATEDB;
+```
+
+Now we create the database and grant appropriate access to each researcher.
+
+```sql
+# Create the forge database
+CREATE DATABASE forge;
+
+# Grant database access to all researchers
+GRANT ALL ON DATABASE forge TO
+    techkgirl, dhart, ksorauf, priyankasaha205, theandyman;
+```
+
+
+### Remote Access Configuration
+
+By default, PostgreSQL only listens on `localhost`. To allow connections from other machines on the cluster, two files were modified:
+
+**postgresql.conf** (located at `/etc/postgresql/<version>/main/postgresql.conf`):
+```bash
+listen_addresses = '*'
+```
+
+**pg_hba.conf** (same directory):
+```bash
+host    all    all    100.77.78.99/32     trust    # nickel
+host    all    all    100.99.205.32/32    trust    # copper
+host    all    all    100.69.179.75/32    trust    # zinc
+host    all    all    100.120.197.126/32  trust    # iron
+host    all    all    100.116.129.84/32   trust    # platinum
+host    all    all    100.110.101.75/32   trust    # tungsten
+```
+
+This allows passwordless connections from each of the cluster's machine that is connected through the Tailscale network. The `trust` method was chosen because the network is isolated to the research cluster.
+
+After modifying both configuration files, the application is restarted:
+```bash
+sudo systemctl restart postgresql
+```
+
+### Schema Setup
+
+The `ipd2` schema and all tables, views, and grants were created in the `setup_forge_db.sql` SQL script file. This file was executed at the Linux shell to create the various database objects within the application:  
+```bash
+psql -h platinum -d forge -f setup_forge_db.sql
+```
+
+Refer to the `database/setup_forge_db.sql` script file within the GitHub repository for the complete schema definition. Table relationships are visualized in the `database\ipd_db_schema_erd.pdf` Entity Relationship Diagram file.  
+
+## Changelog
+
+### Version 2.0 (March 16, 2026)
+- Updated database and code for new field "comment" on ipd2.results
+
+### Version 1.1 (February 22, 2026)
+- Added research log functionality (add_log, get_log, delete_log)
+- Added ON DELETE CASCADE to all foreign keys
+- Created ipd2.research_log table
+
+### Version 1.0 (February 2026)
+- Initial release with ETL pipeline and query methods

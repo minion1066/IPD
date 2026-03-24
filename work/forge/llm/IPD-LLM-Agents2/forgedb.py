@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
     FORGE Database ETL
     ETL Pipeline for Iterated Prisoner's Dilemma with LLM Agents
@@ -10,6 +11,9 @@
     Advisors: Dr. Douglas Hart, Dr. Kellen Sorauf
 
     February 2026
+
+    Revision History:
+        20260316: Added new DB field "comment", updated method load_json() @edc
 """
 
 import argparse
@@ -68,7 +72,8 @@ class ForgeDB:
             cur.execute(sql, params)
             return cur.fetchall()
 
-    def get_raw_data(self, start_date=None, end_date=None, username=None, filename=None, limit=None ):
+    def get_raw_data(self, start_date=None, end_date=None, username=None, filename=None, 
+                comment=None, limit=None ):
         """
         Query Iterative Prisoner's Dilemma (IPD) game results and return as a pandas DataFrame.
 
@@ -93,9 +98,10 @@ class ForgeDB:
                 end_date='2026-01-26 17:00:00')
         """
         return self._query_view('raw_data_vw', start_date=start_date, end_date=end_date, 
-            username=username, filename=filename, limit=limit)
+            username=username, filename=filename, comment=comment, limit=limit)
 
-    def get_results(self, start_date=None, end_date=None, username=None, filename=None, limit=None ):
+    def get_results(self, start_date=None, end_date=None, username=None, filename=None, 
+                comment=None, limit=None ):
         """
         Query Iterative Prisoner's Dilemma (IPD) game results and return as a pandas DataFrame.
 
@@ -113,9 +119,10 @@ class ForgeDB:
             limit:      Maximum rows to return
         """
         return self._query_view('results_vw', start_date=start_date, end_date=end_date, 
-            username=username, filename=filename, limit=limit)
+            username=username, filename=filename, comment=comment, limit=limit)
 
-    def get_summary(self, start_date=None, end_date=None, username=None, filename=None, limit=None ):
+    def get_summary(self, start_date=None, end_date=None, username=None, filename=None, 
+                comment=None, limit=None ):
         """
             Query Iterative Prisoner's Dilemma (IPD) game results and return as a pandas DataFrame.
 
@@ -132,9 +139,10 @@ class ForgeDB:
                 limit:      Maximum rows to return
         """
         return self._query_view('experiment_summary_vw', start_date=start_date, end_date=end_date, 
-            username=username, filename=filename, limit=limit)
+            username=username, filename=filename, comment=comment, limit=limit)
 
-    def get_episode_summary(self, start_date=None, end_date=None, username=None, filename=None, limit=None ):
+    def get_episode_summary(self, start_date=None, end_date=None, username=None, filename=None, 
+                    comment=None, limit=None ):
         """
             Query Iterative Prisoner's Dilemma (IPD) game results and return as a pandas DataFrame.
 
@@ -151,9 +159,10 @@ class ForgeDB:
                 limit:      Maximum rows to return
         """
         return self._query_view('episode_summary_vw', start_date=start_date, end_date=end_date, 
-            username=username, filename=filename, limit=limit)
+            username=username, filename=filename, comment=comment, limit=limit)
 
-    def get_rounds_summary(self, start_date=None, end_date=None, username=None, filename=None, limit=None ):
+    def get_rounds_summary(self, start_date=None, end_date=None, username=None, filename=None, 
+                comment=None, limit=None ):
         """
             Query Iterative Prisoner's Dilemma (IPD) game results and return as a pandas DataFrame.
 
@@ -170,9 +179,10 @@ class ForgeDB:
                 limit:      Maximum rows to return
         """
         return self._query_view('rounds_summary_vw', start_date=start_date, end_date=end_date, 
-            username=username, filename=filename, limit=limit)
+            username=username, filename=filename, comment=comment, limit=limit)
 
-    def get_rounds_detail(self, start_date=None, end_date=None, username=None, filename=None, limit=None ):
+    def get_rounds_detail(self, start_date=None, end_date=None, username=None, filename=None, 
+                comment=None, limit=None ):
         """
             Query Iterative Prisoner's Dilemma (IPD) game results and return as a pandas DataFrame.
 
@@ -188,9 +198,10 @@ class ForgeDB:
                 limit:      Maximum rows to return
         """
         return self._query_view('rounds_detail_vw', start_date=start_date, end_date=end_date, 
-            username=username, filename=filename, limit=limit)
+            username=username, filename=filename, comment=comment, limit=limit)
     
-    def _query_view(self, view_name, start_date=None, end_date=None, username=None, filename=None, limit=None):
+    def _query_view(self, view_name, start_date=None, end_date=None, username=None, filename=None, 
+                comment=None, limit=None):
         try:
             sql = f"SELECT * FROM ipd2.{view_name} WHERE 1=1"
             params = {}
@@ -210,6 +221,10 @@ class ForgeDB:
             if filename is not None:
                 sql += " AND LOWER(filename) LIKE LOWER(%(filename)s)"
                 params['filename'] = filename
+
+            if comment is not None:
+                sql += " AND LOWER(comment) LIKE LOWER(%(comment)s)"
+                params['comment'] = comment                
                         
             if limit is not None:
                 sql += f" LIMIT {limit}"
@@ -223,6 +238,186 @@ class ForgeDB:
         
         except Exception as e:
             err_msg = f"_query_view({view_name}) failed - {e}"
+            logging.error(err_msg)
+            print(err_msg)
+            raise
+
+
+    # ==========================================================================
+    # Methods for using and updating the research log
+    # ==========================================================================
+    def add_log(self, remarks, username=None, subject='General', log_dttm=None, tags=None):
+        """
+        Add an entry to the research log.
+        
+        Parameters:
+          Required:
+            remarks:   Detailed notes
+          
+          Optional
+            username:  Researcher name (default=current user)
+            subject:   Brief description of the entry (default=General)
+            log_dttm:  Effective date/time (default=Current Timestamp)
+            tags:      Array (list) of tags, e.g. ['llama3', 'cooperation', 'test3']
+        """
+        try:
+            if username is None:
+                import getpass
+                username = getpass.getuser()
+
+            with self.conn.cursor() as cur:
+                cur.execute("""
+                    INSERT INTO ipd2.research_log (
+                        create_dttm
+                        ,log_dttm
+                        ,username
+                        ,subject
+                        ,remarks
+                        ,tags
+                    ) VALUES (
+                        NOW()
+                        ,COALESCE(%(log_dttm)s, NOW())
+                        ,%(username)s
+                        ,%(subject)s
+                        ,%(remarks)s
+                        ,%(tags)s
+                    ) RETURNING log_id
+                """,
+                {
+                    'log_dttm': log_dttm,
+                    'username': username,
+                    'subject': subject,
+                    'remarks': remarks,
+                    'tags': tags
+                })
+                
+                log_id = cur.fetchone()['log_id']
+            
+            self.conn.commit()
+            logging.info(f"Added log entry {log_id}: {subject}")
+            print(f"Added log entry {log_id}: {subject}")
+            return log_id
+        
+        except Exception as e:
+            self.conn.rollback()
+            err_msg = f"Failed to add log entry - {e}"
+            logging.error(err_msg)
+            print(err_msg)
+            raise
+
+    def get_log(self, username=None, subject=None, remarks=None, tags=None, 
+                start_date=None, end_date=None, limit=None):
+        """
+        Query research log entries.
+        
+        Parameters (optional, wildcard=%):
+            username:    Filter by researcher (default=all users)
+            subject:     Filter by subject (default=all subjects)
+            remarks:     Search the remarks
+            tags:        Filter by 1 or more tags (matches on ALL tags requested)
+            start_date:  Filter on/after this date
+            end_date:    Filter before this date
+            limit:       Maximum rows to return
+        """
+        try:
+            sql = "SELECT * FROM ipd2.research_log WHERE 1=1"
+            params = {}
+            
+            if username is not None:
+                sql += " AND LOWER(username) LIKE LOWER(%(username)s)"
+                params['username'] = username
+            
+            if subject is not None:
+                sql += " AND LOWER(subject) LIKE LOWER(%(subject)s)"
+                params['subject'] = subject
+
+            if remarks is not None:
+                sql += " AND LOWER(remarks) LIKE LOWER(%(remarks)s)"
+                params['remarks'] = remarks
+            
+            # Uses 1 or more tags; if list of tags is included, then ALL tags must
+            #   exist on log entry to return a row or rows.
+            if tags is not None:
+                if isinstance(tags, list):
+                    sql += " AND tags @> %(tags)s"
+                    params['tags'] = tags
+                else:
+                    sql += " AND %(tags)s = ANY(tags)"
+                    params['tags'] = tags
+            
+            if start_date is not None:
+                sql += " AND log_dttm >= %(start_date)s"
+                params['start_date'] = start_date
+            
+            if end_date is not None:
+                sql += " AND log_dttm < %(end_date)s"
+                params['end_date'] = end_date
+            
+            sql += " ORDER BY log_dttm"
+            
+            if limit is not None:
+                sql += f" LIMIT {limit}"
+            
+            with self.conn.cursor() as cur:
+                cur.execute(sql, params)
+                rows = cur.fetchall()
+            
+            return pd.DataFrame(rows)
+        
+        except Exception as e:
+            err_msg = f"Failed to query log entries - {e}"
+            logging.error(err_msg)
+            print(err_msg)
+            raise
+
+    def delete_log(self, log_id):
+        """
+        Delete research log entries by log_id.
+        
+        Parameters (required):
+            log_id:  Single ID, list of IDs, or tuple range (start, end) inclusive
+
+        Examples: 
+            delete_log(5):       Removes log entry with ID = 5
+            delete_log([1,3,5]): Removes log entries with IDs 1, 3, and 5
+            delete_log((1,10)):  Removes all log entries from ID=1 through ID=10
+        """
+        try:
+            with self.conn.cursor() as cur:
+                if isinstance(log_id, tuple):
+                    # Range: (start, end) inclusive
+                    cur.execute(
+                        "DELETE FROM ipd2.research_log WHERE log_id BETWEEN %(start)s AND %(end)s",
+                        {'start': log_id[0], 'end': log_id[1]}
+                    )
+                elif isinstance(log_id, list):
+                    # List of IDs
+                    cur.execute(
+                        "DELETE FROM ipd2.research_log WHERE log_id = ANY(%(ids)s)",
+                        {'ids': log_id}
+                    )
+                else:
+                    # Single ID
+                    cur.execute(
+                        "DELETE FROM ipd2.research_log WHERE log_id = %(log_id)s",
+                        {'log_id': log_id}
+                    )
+                
+                deleted = cur.rowcount
+            
+            self.conn.commit()
+            
+            if deleted:
+                logging.info(f"Deleted {deleted} log entry(ies)")
+                print(f"Deleted {deleted} log entry(ies)")
+            else:
+                print(f"No entries found matching {log_id}")
+            
+            return deleted
+        
+        except Exception as e:
+            self.conn.rollback()
+            err_msg = f"Failed to delete log entry {log_id} - {e}"
             logging.error(err_msg)
             print(err_msg)
             raise
@@ -272,6 +467,7 @@ class ForgeDB:
                         ,system_prompt
                         ,reflection_template
                         ,raw_json
+                        ,comment
                     ) VALUES (
                         %(filename)s
                         ,%(timestamp)s
@@ -292,6 +488,7 @@ class ForgeDB:
                         ,%(system_prompt)s
                         ,%(reflection_template)s
                         ,%(raw_json)s
+                        ,%(comment)s
                     ) RETURNING results_id
                     """, 
                     {
@@ -320,7 +517,11 @@ class ForgeDB:
                         'reflection_template':      data['prompts']['reflection_template'],
                         
                         # Raw JSON
-                        'raw_json':                 json.dumps(data)
+                        'raw_json':                 json.dumps(data),
+
+                        # Comments
+                        'comment':                  data.get('comment', None)
+
                     })
                 
                 # Retrieve the serialized key generated for the results table

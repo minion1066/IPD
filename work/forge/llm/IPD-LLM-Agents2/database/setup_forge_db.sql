@@ -7,6 +7,9 @@
  * MSDS 692/S41: Data Science Practicum I
  * Dr. Douglas Hart, Dr. Kellen Sorauf
  * February 2026
+ *
+ * Revision History:
+ *  20260316: Added "comment" field to ipd2.results; updated all SQL views
  ******************************************************************************/
 
 CREATE SCHEMA ipd2;
@@ -33,6 +36,7 @@ CREATE TABLE ipd2.results (
   ,system_prompt                TEXT
   ,reflection_template          TEXT
   ,raw_json                     JSONB
+  ,comment                      TEXT
 );
 
 CREATE TABLE ipd2.llm_agents (
@@ -83,6 +87,16 @@ CREATE TABLE ipd2.rounds (
         REFERENCES ipd2.episodes(episode_id) ON DELETE CASCADE
 );
 
+CREATE TABLE ipd2.research_log (
+  log_id                    SERIAL PRIMARY KEY
+  ,create_dttm              TIMESTAMPTZ
+  ,log_dttm                 TIMESTAMPTZ
+  ,username                 VARCHAR(64)
+  ,subject                  VARCHAR(256)
+  ,remarks                  TEXT
+  ,tags                     TEXT[]
+);
+
 /******************************** Grant Access ********************************/
 GRANT USAGE ON SCHEMA ipd2 
   TO techkgirl, dhart, ksorauf, priyankasaha205, theandyman;
@@ -96,11 +110,12 @@ GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA ipd2
   TO techkgirl, dhart, ksorauf, priyankasaha205, theandyman;
   
  /********************************* SQL Views *********************************/
-CREATE OR REPLACE VIEW ipd2.get_raw_data_vw AS
+CREATE OR REPLACE VIEW ipd2.raw_data_vw AS
 SELECT
     r.results_id
     ,r.username
     ,r.filename
+    ,r.comment  -- 20260316: added new field @edc
     ,r.timestamp
     ,r.raw_json
 FROM ipd2.results r
@@ -112,6 +127,7 @@ SELECT
     r.results_id
     ,r.username
     ,r.filename
+    ,r.comment -- 20260316: added new view @edc
     ,r.timestamp
     ,r.hostname
     ,r.elapsed_seconds
@@ -180,6 +196,7 @@ SELECT
     r.results_id
     ,r.username
     ,r.filename
+    ,r.comment -- 20260316: added new view @edc
     ,r.timestamp
     ,r.hostname
     ,r.elapsed_seconds
@@ -231,6 +248,7 @@ SELECT
     r.results_id
     ,r.username
     ,r.filename
+    ,r.comment -- 20260316: added new view @edc    
     ,r.timestamp
     
     ,e0.episode
@@ -267,6 +285,7 @@ SELECT
     r.results_id
     ,r.username
     ,r.filename
+    ,r.comment -- 20260316: added new view @edc
     ,r.timestamp
     
     ,a0.episode
@@ -330,8 +349,9 @@ ORDER BY
 CREATE OR REPLACE VIEW ipd2.rounds_detail_vw AS
 SELECT
     r.results_id
-    ,r.filename
     ,r.username
+    ,r.filename
+    ,r.comment -- 20260316: added new view @edc
     ,r.timestamp
 
     ,e.episode_id

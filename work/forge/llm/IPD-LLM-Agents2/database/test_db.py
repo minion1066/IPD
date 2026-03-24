@@ -1,4 +1,8 @@
-import pandas as pd
+import pandas as pd, os, sys
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(script_dir)
+sys.path.append(parent_dir)
 
 # test_forgedb.py
 from forgedb import ForgeDB
@@ -51,6 +55,12 @@ print()
 # Test with filter
 df = db.get_results(username='techkgirl', limit=50)
 print(f"\nFiltered by username: {len(df)} rows")
+print(df.head())
+print()
+
+# Test with comment filter
+df = db.get_summary(comment='%test%')
+print(f"\nFiltered by comment: {len(df)} rows")
 print(df.head())
 print()
 
