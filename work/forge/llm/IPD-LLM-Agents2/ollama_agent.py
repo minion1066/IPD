@@ -5,7 +5,7 @@ Parameters now configurable via EpisodeConfig
 """
 
 import requests
-import os                   # added 3/30/2026 @edc
+import os                   # Added 3/30/2026 for Containerized Architecture @edc
 from typing import Optional
 import time
 
