@@ -7,45 +7,6 @@
 # Ref: https://docs.k3s.io/
 
 ---
-# K3s uses its own embedded containerd, not the system containerd.
-# The NVIDIA runtime must be configured at K3s's containerd path.
-# Ref: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
-- name: Configure NVIDIA runtime for K3s
-  hosts: all
-  become: true
-
-  tasks:
-    - name: Configure NVIDIA runtime for K3s containerd
-      command: >
-        nvidia-ctk runtime configure
-        --runtime=containerd
-        --config=/var/lib/rancher/k3s/agent/etc/containerd/config.toml.tmpl
-
-    - name: Restart K3s server
-      systemd:
-        name: k3s
-        state: restarted
-      when: inventory_hostname == 'platinum'
-
-    - name: Restart K3s agents
-      systemd:
-        name: k3s-agent
-        state: restarted
-      when: inventory_hostname != 'platinum'
-
-- name: Configure K3s cluster
-  hosts: platinum
-  become: true
-
-  tasks:
-    - name: Wait for all nodes to be ready
-      shell: kubectl get nodes --no-headers | grep -c "Ready"
-      register: ready_count
-      until: ready_count.stdout | int >= groups['all'] | length
-      retries: 30
-      delay: 10
-
----
 - name: Configure K3s cluster
   hosts: platinum
   become: true
@@ -125,4 +86,4 @@
     - name: Install NVIDIA device plugin
       command: >
         kubectl apply -f
-        https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/v0.17.0/deployments/static/nvidia-device-plugin.yml        
+        https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/v0.17.0/deployments/static/nvidia-device-plugin.yml

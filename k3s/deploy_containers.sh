@@ -5,6 +5,19 @@
 
 echo "=== FORGE K3s Deployment ==="
 
+echo "Configuring image pull credentials..."
+kubectl delete secret ghcr-secret 2>/dev/null
+
+# Get GitHub username from the user at the shell prompt
+read -p "GitHub username: " GHCR_USER
+
+# Create the secret, prompt the user for the GitHub access token
+kubectl create secret docker-registry ghcr-secret \
+  --docker-server=ghcr.io \
+  --docker-username=$GHCR_USER \
+  --docker-password=$(read -sp "GitHub PAT: " pat && echo $pat)
+echo ""
+
 echo "Deploying ForgeDB..."
 kubectl apply -f forge-db.yml
 echo "=== Database deployed ==="
