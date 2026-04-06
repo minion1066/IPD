@@ -31,6 +31,7 @@ spec:
   containers:
     - name: forge
       image: ghcr.io/regis-university-data-science/forge:main
+      imagePullPolicy: Always
       stdin: true
       tty: true
       env:
