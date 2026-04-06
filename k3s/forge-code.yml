@@ -31,6 +31,7 @@ spec:
   containers:
     - name: forge
       image: ghcr.io/regis-university-data-science/forge:main
+      imagePullPolicy: Always
       stdin: true
       tty: true
       env:
@@ -38,6 +39,8 @@ spec:
           value: "${FORGE_USER}"
         - name: FORGE_DB_HOST
           value: "forge-db"
+        - name: FORGE_DB_USER
+          value: "postgres"          
         - name: OLLAMA_HOST_0
           value: "ollama-tungsten"
         - name: OLLAMA_HOST_1
