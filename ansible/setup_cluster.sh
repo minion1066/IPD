@@ -1,10 +1,20 @@
 #!/bin/bash
 
+#*******************************************************************************
 # FORGE Cluster Infrastructure Setup
+# 
 # Prerequisites: See main.yml header for requirements
 # Notes: 
 #   - The -K prompts the user for a BECOME password; this is the user's SUDO password
 #   - Add a --check flag to the command to execute WITHOUT making changes
+#
+# Author:
+#   Emily D. Carpenter
+#   Anderson College of Business and Computing, Regis University
+#   MSDS 696/S71: Data Science Practicum II
+#   Dr. Douglas Hart, Dr. Kellen Sorauf
+#   Practicum II, February-May 2026
+#*******************************************************************************
 
 echo "=== FORGE Cluster Infrastructure Setup ==="
 
