@@ -1,19 +1,20 @@
 #*******************************************************************************
-# Practicum II - FORGE Docker Container Setup
+# FORGE Docker Container Setup
 # 
-# Emily D. Carpenter
-# Anderson College of Business and Computing, Regis University
-# MSDS 696/S71: Data Science Practicum II
-# Dr. Douglas Hart, Dr. Kellen Sorauf
-# February-May 2026
+# Remarks:
+#   Be sure to verify current GitHub action versions for tags [2].
 #
 # References:
 # 1. https://docs.github.com/en/actions/tutorials/publish-packages/publish-docker-images#publishing-images-to-github-packages
 # 2. https://github.com/marketplace?type=actions
 # 3. https://docs.github.com/en/actions/reference/security/secure-use
 #
-# Remarks:
-#   Be sure to verify current GitHub action versions for tags [2].
+# Author:
+#   Emily D. Carpenter
+#   Anderson College of Business and Computing, Regis University
+#   MSDS 696/S71: Data Science Practicum II
+#   Dr. Douglas Hart, Dr. Kellen Sorauf
+#   Practicum II, February-May 2026
 #*******************************************************************************
 
 name: Build FORGE Database Container

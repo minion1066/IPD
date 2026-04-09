@@ -24,15 +24,7 @@ spec:
       labels:
         app: forge-db
     spec:
-      # User needs to create a secrets entry on their machine for use with private images
-      # kubectl create secret docker-registry ghcr-secret \
-      #   --docker-server=ghcr.io \
-      #   --docker-username=minion1066 \
-      #   --docker-password=$(read -sp "PAT: " pat && echo $pat)      
-      # imagePullSecrets:
-      #   - name: ghcr-secret
-
-      # Set this to the primary host that persistent storage will reside on
+       # Set this to the primary host that persistent storage will reside on
       nodeSelector:
         kubernetes.io/hostname: platinum
 
