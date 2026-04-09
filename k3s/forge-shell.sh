@@ -18,7 +18,7 @@ export FORGE_UID=$(id -u)
 mkdir -p ~/forge-results
 
 echo "Starting FORGE container for ${FORGE_USER}..."
-envsubst < forge-code.yml | kubectl apply -f -
+envsubst < manifests/forge-code.yml | kubectl apply -f -
 
 echo "Waiting for pod to start..."
 kubectl wait --for=condition=Ready pod/forge-${FORGE_USER} --timeout=120s

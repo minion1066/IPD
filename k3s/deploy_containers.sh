@@ -24,10 +24,10 @@ echo "=== FORGE K3s Deployment ==="
 cd "$(dirname "$0")"
 
 echo "Creating persistent storage..."
-kubectl apply -f forge-db-storage.yml
+kubectl apply -f manifests/forge-db-storage.yml
 
 echo "Deploying ForgeDB..."
-kubectl apply -f forge-db.yml
+kubectl apply -f manifests/forge-db.yml
 echo "=== Database deployed ==="
 
 echo "Verifying deployment..."
@@ -35,11 +35,11 @@ kubectl get pods
 kubectl get services
 
 # Deploy Ollama nodes individually as needed:
-# kubectl apply -f ollama-tungsten.yml
-kubectl apply -f ollama-iron.yml
-kubectl apply -f ollama-copper.yml
-kubectl apply -f ollama-nickel.yml
-kubectl apply -f ollama-zinc.yml
+# kubectl apply -f manifests/ollama-tungsten.yml
+kubectl apply -f manifests/ollama-iron.yml
+kubectl apply -f manifests/ollama-copper.yml
+kubectl apply -f manifests/ollama-nickel.yml
+kubectl apply -f manifests/ollama-zinc.yml
 
 
 echo ""

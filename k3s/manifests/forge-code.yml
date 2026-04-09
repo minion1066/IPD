@@ -28,6 +28,7 @@ metadata:
     app: forge
     user: ${FORGE_USER}
 spec:
+  hostname: forge-code
   nodeSelector:
     kubernetes.io/hostname: platinum
   containers:

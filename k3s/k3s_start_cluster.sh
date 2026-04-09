@@ -17,16 +17,16 @@
 cd "$(dirname "$0")"
 
 echo "=== Starting FORGE containers ==="
-kubectl apply -f forge-db-storage.yml
-kubectl apply -f forge-db.yml
+kubectl apply -f manifests/forge-db-storage.yml
+kubectl apply -f manifests/forge-db.yml
 
 # Uncomment the nodes to be run:
-# kubectl apply -f ollama-platinum.yml
-# kubectl apply -f ollama-tungsten.yml
-# kubectl apply -f ollama-iron.yml
-kubectl apply -f ollama-copper.yml
-kubectl apply -f ollama-nickel.yml
-kubectl apply -f ollama-zinc.yml
+kubectl apply -f manifests/ollama-copper.yml
+kubectl apply -f manifests/ollama-iron.yml
+kubectl apply -f manifests/ollama-nickel.yml
+kubectl apply -f manifests/ollama-platinum.yml
+# kubectl apply -f manifests/ollama-tungsten.yml
+kubectl apply -f manifests/ollama-zinc.yml
 
 echo ""
 kubectl get pods
