@@ -12,5 +12,5 @@ FROM postgres:16
 ENV POSTGRES_DB=forge
 ENV POSTGRES_HOST_AUTH_METHOD=trust
 
-COPY work/forge/llm/IPD-LLM-Agents2/database/setup_forge_db.sql /docker-entrypoint-initdb.d/01_db_setup.sql
+COPY docker/forge-db/setup_forge_db.sql /docker-entrypoint-initdb.d/01_db_setup.sql
 COPY docker/forge-db/setup_forge_db_grants.sql /docker-entrypoint-initdb.d/02_db_grants.sql
