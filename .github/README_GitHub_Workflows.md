@@ -21,6 +21,30 @@ If you fork or clone this repository to a new GitHub organization, the workflows
 
 ---
 
+## Contacts
+
+Principal Investigators:
+- **Douglas Hart**: douglas.hart@regis.edu
+- **Kellen Sorauf**: kellen.sorauf@regis.edu
+
+---
+
+## Citation
+```
+Carpenter, E. D. (2026, March-May). Containerized architecture design for
+   portable deployment of GENESIS intelligent agent research framework
+   [Unpublished practicum project]. Anderson College of Business and
+   Computing, Regis University.
+```
+
+---
+
+## Acknowledgments
+
+Containerized Architecture and associated documentation developed with assistance from Claude (Anthropic; model: Opus 4.6). All code and content reviewed, edited, and approved by the initial author.
+
+---
+
 ## Changelog
 
 ### Version 1.0 (April 2026)

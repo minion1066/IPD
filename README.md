@@ -45,6 +45,14 @@ The reference deployment runs on a six-node GPU compute cluster with the followi
 A portable Containerized Architecture was configured to allow research teams to execute code on systems other than the reference deployment cluster.
 
 ---
+ 
+## Contacts
+ 
+Principal Investigators:
+- **Douglas Hart**: douglas.hart@regis.edu
+- **Kellen Sorauf**: kellen.sorauf@regis.edu
+
+---
 
 ## Changelog
 

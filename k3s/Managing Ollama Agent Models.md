@@ -1,4 +1,4 @@
-# Managing Ollama Models
+# Managing Ollama Agent Models
 
 ---
 
@@ -95,6 +95,31 @@ ansible -K -i ansible/inventory.ini all -m shell -a "ollama rm llama3:8b-instruc
 ## Available Models
 
 Refer to the Ollama model library at [https://ollama.com/library](https://ollama.com/library) for a list of available models. When selecting models, consider the GPU VRAM available on each node. See the node configurations in `ansible/host_vars/` for hardware details.
+
+---
+
+## Contacts
+
+Principal Investigators:
+- **Douglas Hart**: douglas.hart@regis.edu
+- **Kellen Sorauf**: kellen.sorauf@regis.edu
+
+---
+
+## Citation
+
+```
+Carpenter, E. D. (2026, March-May). Containerized architecture design for
+   portable deployment of GENESIS intelligent agent research framework
+   [Unpublished practicum project]. Anderson College of Business and
+   Computing, Regis University.
+```
+
+---
+
+## Acknowledgments
+
+Containerized Architecture and associated documentation developed with assistance from Claude (Anthropic; model: Opus 4.6). All code and content reviewed, edited, and approved by the initial author.
 
 ---
 
