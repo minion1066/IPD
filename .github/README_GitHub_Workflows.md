@@ -24,8 +24,8 @@ If you fork or clone this repository to a new GitHub organization, the workflows
 ## Contacts
 
 Principal Investigators:
-- **Douglas Hart**: douglas.hart@regis.edu
-- **Kellen Sorauf**: kellen.sorauf@regis.edu
+- **Douglas Hart**: dhart@regis.edu
+- **Kellen Sorauf**: ksorauf@regis.edu
 
 ---
 

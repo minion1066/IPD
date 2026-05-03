@@ -200,8 +200,8 @@ sudo apt purge ansible
 ## Contacts
 
 Principal Investigators:
-- **Douglas Hart**: douglas.hart@regis.edu
-- **Kellen Sorauf**: kellen.sorauf@regis.edu
+- **Douglas Hart**: dhart@regis.edu
+- **Kellen Sorauf**: ksorauf@regis.edu
 
 ---
 
